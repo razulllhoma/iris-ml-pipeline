@@ -37,16 +37,39 @@ embeddings = model.encode(chunks)
 collection.add(
     documents=chunks,
     embeddings=embeddings.tolist(),
-    ids=[f"chunk_{i}" for i in range(len(chunks))]
+    ids=[f"chunk_{i}" for i in range(len(chunks))],
+    metadatas=[{"source": "knowledge_base", "chunk_index": i}
+               for i in range(len(chunks))]
 )
 print(f"Stored {collection.count()} chunks in ChromaDB")
 
 # Step 3 - Retrieve
-def retrieve(query, top_k=3):
+def retrieve(query, top_k=3, threshold=1.3):
     query_embedding = model.encode([query]).tolist()
-    results = collection.query(query_embeddings=query_embedding, n_results=top_k)
-    return results['documents'][0]
+    results = collection.query(
+        query_embeddings=query_embedding,
+        n_results=top_k,
+        include=["documents", "distances", "metadatas"]
+    )
 
+    documents = results['documents'][0]
+    distances = results['distances'][0]
+    metadatas = results['metadatas'][0]
+
+    filtered = [
+        (doc, dist, meta)
+        for doc, dist, meta in zip(documents, distances, metadatas)
+        if dist < threshold
+    ]
+
+    if not filtered:
+        return None
+
+    print(f"\nRetrieved {len(filtered)} chunks:")
+    for doc, dist, meta in filtered:
+        print(f"  Distance: {dist:.3f} | Source: {meta['source']} | Chunk: {meta['chunk_index']}")
+
+    return [doc for doc, dist, meta in filtered]
 # Step 4 - Generate
 generator = pipeline("text-generation", model="distilgpt2")
 
@@ -67,3 +90,44 @@ def rag(query):
 
 rag("how do neural networks learn from data?")
 rag("what is used for medical image analysis?")
+
+
+def retrieve(query, top_k=3, threshold=1.3):
+    query_embedding = model.encode([query]).tolist()
+    results = collection.query(
+        query_embeddings=query_embedding,
+        n_results=top_k
+    )
+
+    documents = results['documents'][0]
+    distances = results['distances'][0]
+
+    # Filter by threshold — remember lower distance = more similar
+    filtered = [
+        doc for doc, dist in zip(documents, distances)
+        if dist < threshold
+    ]
+
+    if not filtered:
+        return None
+
+    return filtered
+
+
+def rag(query):
+    context_chunks = retrieve(query)
+
+    if context_chunks is None:
+        print(f"\nQuestion: {query}")
+        print("Answer: I don't have enough information to answer this.")
+        return
+
+    answer = generate_answer(query, context_chunks)
+    print(f"\nQuestion: {query}")
+    print(f"Answer: {answer}")
+
+
+# Test with relevant and irrelevant queries
+rag("how do neural networks learn from data?")
+rag("what is used for medical image analysis?")
+rag("what is the weather in Munich today?")
