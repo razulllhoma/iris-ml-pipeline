@@ -136,7 +136,33 @@ def rag(query):
 #rag("what is used for medical image analysis?")
 #rag("what is the weather in Munich today?")
 
-rag("how do you classify stem cells from microscopy images?")
-rag("what sensors does the Skillflow glove use?")
-rag("how do you deploy a model on edge hardware?")
-rag("what is semi-supervised learning?")
+#rag("how do you classify stem cells from microscopy images?")
+#rag("what sensors does the Skillflow glove use?")
+#rag("how do you deploy a model on edge hardware?")
+#rag("what is semi-supervised learning?")
+
+
+def run_interactive():
+    print("\n" + "=" * 50)
+    print("RAG Pipeline — Domain: ML/CV/Medical Imaging")
+    print("Type your question and press Enter.")
+    print("Type 'quit' to exit.")
+    print("=" * 50)
+
+    while True:
+        print()
+        query = input("Your question: ").strip()
+
+        if query.lower() == 'quit':
+            print("Goodbye!")
+            break
+
+        if not query:
+            print("Please enter a question.")
+            continue
+
+        rag(query)
+
+
+# Replace the hardcoded rag() calls with this
+run_interactive()
