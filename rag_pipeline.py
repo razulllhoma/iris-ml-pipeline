@@ -1,3 +1,5 @@
+# Note: using distilgpt2 for local development —
+# replace with GPT-4/Claude/Mistral API for production-quality generation
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
@@ -7,19 +9,21 @@ import os
 
 # Your document
 document = """
-Machine learning is a subset of artificial intelligence that enables systems to learn from data.
-Neural networks are computational models inspired by the human brain.
-Deep learning uses multiple layers of neural networks to learn complex patterns.
-Convolutional neural networks are widely used for image recognition tasks.
-Transfer learning allows models pretrained on large datasets to be fine-tuned on smaller ones.
-Embeddings are dense vector representations that capture semantic meaning of data.
-RAG combines retrieval with language model generation to produce grounded answers.
-Large language models are trained on massive text corpora to predict the next token.
-Fine-tuning adapts a pretrained model to a specific domain using additional training data.
-Docker containers package applications with their dependencies for consistent deployment.
-GitHub Actions automates testing and deployment workflows using CI/CD pipelines.
-Medical imaging uses convolutional neural networks to detect diseases in scans.
-Sensor fusion combines data from multiple sensors to improve prediction accuracy.
+Convolutional neural networks extract hierarchical features from images by applying learned filters across spatial dimensions.
+Medical image segmentation divides an image into regions corresponding to different tissues or pathological structures.
+Hematopoietic stem cell classification uses deep learning to distinguish cell types from microscopy images.
+Semi-supervised learning reduces the need for labeled data by combining small labeled datasets with large unlabeled ones.
+Ladder networks use denoising autoencoders to propagate labels through unlabeled data during training.
+Anomaly detection identifies samples that deviate significantly from the learned distribution of normal data.
+Sensor fusion combines measurements from multiple sensors to produce more accurate predictions than any single sensor.
+The Skillflow smart glove uses flexible sensor arrays to capture hand gesture data for classification tasks.
+Edge deployment runs machine learning models directly on embedded hardware without cloud connectivity.
+Transfer learning fine-tunes pretrained models on domain-specific data to achieve high accuracy with limited samples.
+Proteomics research uses mass spectrometry data to identify and quantify proteins in biological samples.
+Cell morphology classification distinguishes healthy from pathological cells based on shape and texture features.
+MLflow tracks machine learning experiments including parameters, metrics, and model artifacts.
+Docker containers package models with their dependencies for reproducible deployment across environments.
+GitHub Actions automates testing and deployment pipelines for machine learning projects.
 """
 
 # Step 1 - Chunk
@@ -88,8 +92,8 @@ def rag(query):
     print(f"\nQuestion: {query}")
     print(f"Answer: {answer}")
 
-rag("how do neural networks learn from data?")
-rag("what is used for medical image analysis?")
+#rag("how do neural networks learn from data?")
+#rag("what is used for medical image analysis?")
 
 
 def retrieve(query, top_k=3, threshold=1.3):
@@ -128,6 +132,11 @@ def rag(query):
 
 
 # Test with relevant and irrelevant queries
-rag("how do neural networks learn from data?")
-rag("what is used for medical image analysis?")
-rag("what is the weather in Munich today?")
+#rag("how do neural networks learn from data?")
+#rag("what is used for medical image analysis?")
+#rag("what is the weather in Munich today?")
+
+rag("how do you classify stem cells from microscopy images?")
+rag("what sensors does the Skillflow glove use?")
+rag("how do you deploy a model on edge hardware?")
+rag("what is semi-supervised learning?")
