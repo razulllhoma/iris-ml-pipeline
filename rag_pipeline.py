@@ -86,12 +86,69 @@ Answer:"""
     return result[0]['generated_text'].split("Answer:")[-1].strip()
 
 # Step 5 - Full RAG pipeline
-def rag(query):
-    context_chunks = retrieve(query)
-    answer = generate_answer(query, context_chunks)
-    print(f"\nQuestion: {query}")
-    print(f"Answer: {answer}")
+import time
+import json
+from datetime import datetime
 
+
+def rag(query, log=True):
+    start_time = time.time()
+
+    print(f"\nUser: {query}")
+
+    # Retrieve
+    query_embedding = model.encode([query]).tolist()
+    results = collection.query(
+        query_embeddings=query_embedding,
+        n_results=3,
+        include=["documents", "distances", "metadatas"]
+    )
+
+    documents = results['documents'][0]
+    distances = results['distances'][0]
+
+    # Filter by threshold
+    filtered = [
+        (doc, dist) for doc, dist in zip(documents, distances)
+        if dist < 1.3
+    ]
+
+    # Generate
+    if not filtered:
+        answer = "I don't have enough information to answer this."
+        context_chunks = []
+    else:
+        context_chunks = [doc for doc, dist in filtered]
+        answer = generate_answer(query, context_chunks)
+
+    latency = time.time() - start_time
+    avg_confidence = sum(dist for doc, dist in filtered) / len(filtered) if filtered else None
+
+    # Log
+    log_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "query": query,
+        "answer": answer[:100],
+        "chunks_retrieved": len(filtered),
+        "avg_distance": round(avg_confidence, 3) if avg_confidence else None,
+        "latency_seconds": round(latency, 3),
+        "guardrail_triggered": len(filtered) == 0
+    }
+
+    if log:
+        with open("rag_logs.jsonl", "a") as f:
+            f.write(json.dumps(log_entry) + "\n")
+
+    print(f"Answer: {answer[:150]}")
+    print(f"Latency: {latency:.2f}s | Chunks: {len(filtered)} | Guardrail: {log_entry['guardrail_triggered']}")
+
+    return answer
+
+
+# Test
+rag("what is transfer learning?")
+rag("how does the Skillflow glove work?")
+rag("what is the weather in Munich?")
 #rag("how do neural networks learn from data?")
 #rag("what is used for medical image analysis?")
 
@@ -165,4 +222,4 @@ def run_interactive():
 
 
 # Replace the hardcoded rag() calls with this
-run_interactive()
+#run_interactive()
